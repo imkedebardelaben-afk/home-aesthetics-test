@@ -120,6 +120,15 @@ body{background:#E7E2D5;color:var(--ink);
     </div>
   </div>
 
+  <!-- 结果引导页（10.png：测试结果） -->
+  <div class="screen" id="scr-r0">
+    <div class="picwrap"><img class="mainpic" src="h5img/r0.jpg" alt="测试结果"></div>
+    <div class="startbtns">
+      <button class="btn-main" id="btn-reveal">查 看 我 的 结 果</button>
+      <div class="start-foot">你的家居审美人格 · 即将揭晓</div>
+    </div>
+  </div>
+
   <!-- 结果页 -->
   <div class="screen" id="scr-r">
     <div class="topbar">
@@ -148,24 +157,25 @@ body{background:#E7E2D5;color:var(--ink);
 /* layout: v=竖排四选(自上而下ABCD) / grid=田字格(左上A 右上B 左下C 右下D)
    top: 图片顶部标题区结束比例(热区从这开始) */
 const QS = [
-  {img:"h5img/q1.jpg",  layout:"v",    top:0.283},
-  {img:"h5img/q2.jpg",  layout:"v",    top:0.287},
-  {img:"h5img/q3.jpg",  layout:"v",    top:0.283},
-  {img:"h5img/q4.jpg",  layout:"grid", top:0.283},
-  {img:"h5img/q5.jpg",  layout:"v",    top:0.287},
-  {img:"h5img/q6.jpg",  layout:"v",    top:0.283},
-  {img:"h5img/q7.jpg",  layout:"grid", top:0.280},
-  {img:"h5img/q8.jpg",  layout:"grid", top:0.250},
-  {img:"h5img/q9.jpg",  layout:"v",    top:0.373},
-  {img:"h5img/q10.jpg", layout:"grid", top:0.287}
+  {img:"h5img/q1.jpg", layout:"v",    top:0.283},
+  {img:"h5img/q2.jpg", layout:"grid", top:0.280},
+  {img:"h5img/q3.jpg", layout:"v",    top:0.283},
+  {img:"h5img/q4.jpg", layout:"v",    top:0.287},
+  {img:"h5img/q5.jpg", layout:"v",    top:0.287},
+  {img:"h5img/q6.jpg", layout:"v",    top:0.283},
+  {img:"h5img/q7.jpg", layout:"grid", top:0.283},
+  {img:"h5img/q8.jpg", layout:"grid", top:0.287},
+  {img:"h5img/q9.jpg", layout:"v",    top:0.373}
 ];
+const NQ = 9;
+const R0 = "h5img/r0.jpg";   /* 「测试结果」引导页 */
 const RESULTS = ["h5img/r1.jpg","h5img/r2.jpg","h5img/r3.jpg","h5img/r4.jpg","h5img/r5.jpg","h5img/r6.jpg"];
 const RNAME   = ["自然疗愈系","极简高级系","奶油浪漫系","中古故事系","艺术表达系","东方雅韵系"];
 /* 判定：A自然(0) B极简(1) C奶油(2) D中古(3)；D≥4且B≥2且D>B→东方(5)；均匀→艺术(4) */
 /* ═══════════ 数据区结束 ═══════════ */
 
 const $ = id => document.getElementById(id);
-let idx = 0, score = {A:0,B:0,C:0,D:0}, answered = new Array(10).fill(null);
+let idx = 0, score = {A:0,B:0,C:0,D:0}, answered = new Array(NQ).fill(null);
 
 function show(id){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
@@ -177,16 +187,16 @@ function toast(msg){
 }
 
 $("btn-start").addEventListener("click", ()=>{
-  idx = 0; score = {A:0,B:0,C:0,D:0}; answered = new Array(10).fill(null);
+  idx = 0; score = {A:0,B:0,C:0,D:0}; answered = new Array(NQ).fill(null);
   renderQ(); show("scr-q");
 });
 
 /* ── 题目渲染 + 热区 ── */
 function renderQ(){
   const q = QS[idx];
-  $("q-num").textContent = (idx+1) + " / 10";
-  $("q-done").textContent = answered.filter(x=>x).length >= 10 ? "全部作答 ✓" : "";
-  $("pbar").style.width = (answered.filter(x=>x).length / 10 * 100) + "%";
+  $("q-num").textContent = (idx+1) + " / " + NQ;
+  $("q-done").textContent = answered.filter(x=>x).length >= NQ ? "全部作答 ✓" : "";
+  $("pbar").style.width = (answered.filter(x=>x).length / NQ * 100) + "%";
   const img = $("q-img");
   img.onload = ()=> layoutZones(q);
   img.src = q.img;
@@ -222,20 +232,21 @@ function pick(i, el){
   toast(`已选 ${k} · ${["自然","极简","奶油","中古"][i]}`);
   setTimeout(()=>{
     const next = idx + 1;
-    if (next < 10){ idx = next; renderQ(); }
+    if (next < NQ){ idx = next; renderQ(); }
     else if (answered.every(x=>x)) finish();
     else { /* 停在最后一题等用户翻回去补答 */ }
   }, 480);
 }
 $("nav-prev").addEventListener("click", ()=>{ if (idx > 0){ idx--; renderQ(); } });
 $("nav-next").addEventListener("click", ()=>{
-  if (idx < 9){ idx++; renderQ(); }
+  if (idx < NQ-1){ idx++; renderQ(); }
   else if (answered.every(x=>x)) finish();
   else toast("还有题目未作答，请翻回去补答");
 });
 window.addEventListener("resize", ()=>{ if ($("scr-q").classList.contains("on")) layoutZones(QS[idx]); });
 
-/* ── 结果：判定 + 6 张轮播 ── */
+/* ── 结果：先引导页，再揭晓轮播 ── */
+let lastR = 0;
 function finish(){
   const vals = [score.A, score.B, score.C, score.D], mx = Math.max(...vals), mn = Math.min(...vals);
   let r;
@@ -245,7 +256,14 @@ function finish(){
   else if (score.B >= score.C && score.B >= score.D) r = 1;
   else if (score.C >= score.D) r = 2;
   else r = 3;
+  lastR = r;
+  show("scr-r0");                                                      // 10.png「测试结果」引导页
+  window.scrollTo(0,0);
+}
+$("btn-reveal").addEventListener("click", showResult);
 
+function showResult(){
+  const r = lastR;
   const car = $("carousel");
   car.innerHTML = RESULTS.map(s=>`<div class="slide"><img src="${s}" alt="结果"></div>`).join("");
   $("dots").innerHTML = RESULTS.map((_,i)=>`<i class="${i===r?"on":""}"></i>`).join("");
