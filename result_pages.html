@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>结果页增强版（复刻原版式+心理学深度）</title>
+<style>
+:root{
+  --bg:#F7F3EA; --ink:#2E2B26; --ink2:#6B655B;
+  --accent:#C99A2C; --green:#6E7F52; --line:#E4DCC8;
+  --card:#FFFFFF;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#E9E4D8;font-family:"Songti SC","STSong","SimSun",serif;color:var(--ink)}
+.kai{font-family:"Kaiti SC","STKaiti","KaiTi",serif}
+.deck{display:flex;flex-direction:column;gap:30px;padding:30px 0;align-items:center}
+
+.page{width:941px;height:1672px;background:var(--bg);position:relative;overflow:hidden;
+  padding:56px 58px 44px;display:flex;flex-direction:column}
+.page::before{content:"";position:absolute;inset:24px;border:1px solid var(--line);pointer-events:none}
+.page::after{content:"";position:absolute;inset:31px;border:2px solid var(--accent);opacity:.32;pointer-events:none}
+
+/* 眉题 */
+.mast{display:flex;align-items:center;justify-content:center;gap:14px}
+.mast::before,.mast::after{content:"";height:1px;width:64px;background:var(--accent);opacity:.6}
+.mast span{font-size:19px;letter-spacing:.34em;color:var(--accent);font-family:Georgia,serif}
+
+/* 标题区 */
+.t-you{margin-top:26px;text-align:center;font-size:23px;color:var(--ink2);letter-spacing:.3em}
+.t-name{margin-top:10px;text-align:center;font-size:72px;font-weight:bold;letter-spacing:.08em;line-height:1.2}
+.t-en{margin-top:8px;text-align:center;font-size:17px;letter-spacing:.4em;color:var(--accent);font-family:Georgia,serif}
+.t-sub{margin:20px auto 0;width:760px;text-align:center;font-size:23.5px;line-height:1.75;color:var(--ink)}
+
+/* 卡片 */
+.cards{margin-top:26px;display:flex;flex-direction:column;gap:15px;flex:1}
+.card{background:var(--card);border-radius:14px;padding:20px 26px 19px;box-shadow:0 2px 10px rgba(90,75,40,.05)}
+.tag{display:inline-block;font-size:16.5px;color:#fff;background:var(--accent);border-radius:20px;
+  padding:4px 16px;letter-spacing:.2em;margin-bottom:11px}
+.tag.green{background:var(--green)}
+.ct{font-size:19.5px;line-height:1.72;color:var(--ink)}
+.ct b{color:var(--accent);font-weight:normal}
+.ct .hl{color:var(--green)}
+
+/* 性格侧写三行 */
+.traits{list-style:none}
+.traits li{font-size:19px;line-height:1.62;padding-left:26px;position:relative;margin-top:5px}
+.traits li:first-child{margin-top:0}
+.traits li::before{content:"◦";position:absolute;left:6px;color:var(--accent);font-size:22px;line-height:1.3}
+
+/* 关键词胶囊 */
+.keys{display:flex;gap:12px;flex-wrap:wrap}
+.keys span{font-size:18.5px;letter-spacing:.14em;background:#F4EEDF;border-radius:6px;padding:7px 18px}
+
+/* 色板 */
+.pal{display:flex;height:58px;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+.pal i{flex:1;position:relative}
+.pal span{position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:12.5px;letter-spacing:.02em;font-family:Consolas,monospace}
+.palcap{margin-top:7px;font-size:14px;color:var(--ink2);text-align:right;letter-spacing:.12em}
+
+/* 风格行 */
+.fit{font-size:20.5px;letter-spacing:.06em}
+
+/* 晒点 */
+.hash{margin-top:6px;text-align:center;font-size:19px;color:var(--green);letter-spacing:.06em}
+.disc{margin-top:9px;text-align:center;font-size:13px;color:#B3AB9B;letter-spacing:.14em}
+</style>
+</head>
+<body>
+<div class="deck" id="deck"></div>
+
+<script>
+/* ═══════════ 数据区：副题/需求/关键词/风格保留原作者文案，心理学内容为新增轻科普 ═══════════ */
+const DATA = [
+{ name:"自然疗愈系", en:"NATURAL HEALING",
+  sub:"你喜欢的家，有阳光、木头和植物的味道。<br>在外面耗尽的电，回家能一格一格充回来。",
+  need:"情绪复原感",
+  psych:"注意力恢复理论认为，自然元素能让大脑紧绷的「定向注意力」得到休息——这就是你在绿植与原木的包围里，才真正放松的原因。你也天然亲近生命与自然（生物亲和假说），家对你而言，是一座<b>心理充电站</b>。",
+  big5:"高宜人性 + 高开放性",
+  traits:["共情力强，对材质与温度特别敏感","讨厌冲突，温柔是你和世界相处的方式","需要定期「回自然」回血，不然会莫名疲惫"],
+  keys:["自然","温暖","松弛","治愈"],
+  pal:["#F4F1EA","#DCCDB4","#A8B08C","#7C8B66","#5C4F3D"],
+  fit:"日式原木 · Japandi · 自然系慢生活",
+  tip:"心理学上，「照料」本身就是疗愈——养活一盆植物的过程，也在滋养你自己。",
+  hash:"#自然疗愈系 · 我家绿植比衣服多" },
+
+{ name:"极简高级系", en:"MINIMAL ELEGANCE",
+  sub:"你喜欢的家，安静、克制、有秩序。<br>东西越少，心越定。留白就是你的奢华。",
+  need:"秩序感与掌控感",
+  psych:"认知负荷理论：视野里的杂物越少，大脑的处理负担越轻——空无一物的台面对你来说不是冷淡，是<b>心理降噪</b>。空白在你眼里从来不是缺失，而是可能性。",
+  big5:"高尽责性",
+  traits:["自律、目标导向，混乱会真实消耗你的认知资源","对「未完成」与「堆积」的容忍度天生偏低——这不是挑剔，是认知特点","决策果断：买得少，但买得对"],
+  keys:["克制","留白","秩序","高级"],
+  pal:["#FFFFFF","#F2F0EC","#D6D3CC","#9C9891","#2E2B26"],
+  fit:"现代极简 · 北欧",
+  tip:"极简不是压抑欲望，是把资源留给真正重要的少数——先减物，再减心。",
+  hash:"#极简高级系 · 台面空无一物才是高级" },
+
+{ name:"奶油浪漫系", en:"CREAM ROMANCE",
+  sub:"你喜欢的家，是甜品店的样子。<br>弧线要圆，颜色要暖，光线要柔。氛围感是住出来的。",
+  need:"情绪安抚感",
+  psych:"环境心理学的「庇护感」理论：柔和的曲线与暖光，会唤起被包裹＝被保护的安全反应。你把「甜」当作心理防御的温柔版本——<b>用柔软，化解世界的坚硬</b>。",
+  big5:"高宜人性",
+  traits:["温暖体贴，是朋友们的情绪树洞","对冲突敏感，家里和气了，你才真正安心","「好看但没用」的东西对你真的有用——它安抚你的情绪"],
+  keys:["温暖","柔软","浪漫","治愈"],
+  pal:["#F5EFE6","#E8DCC8","#D9C49A","#B99A6B","#8C7351"],
+  fit:"奶油风 · 法式",
+  tip:"氛围感不是矫情，是你稳定情绪的真实工具——放心为温柔买单。",
+  hash:"#奶油浪漫系 · 我家就是甜品店" },
+
+{ name:"中古故事系", en:"VINTAGE STORIES",
+  sub:"你喜欢的家，每件东西都有来处。<br>老物件不是旧，是替你存着时间。",
+  need:"意义感与情感联结",
+  psych:"怀旧心理学发现：老物件唤起的不是过去本身，而是「连续的自我」——你在物品的故事里，确认自己是谁。全新的、无来处的东西难以打动你，因为对你而言，<b>无故事＝无联结</b>。",
+  big5:"高开放性",
+  traits:["想象力丰富，审美敏锐，淘货时多巴胺飙升","重关系、重来历，朋友多是处了很多年的","享受「慢慢凑齐」的过程，不喜欢一步到位"],
+  keys:["复古","质感","故事","温度"],
+  pal:["#E8DFD0","#C7A87E","#9C7C54","#705039","#46362A"],
+  fit:"中古风 · 复古混搭",
+  tip:"留一件「传家」级别的老物件——研究发现，怀旧能实实在在提升生活的意义感。",
+  hash:"#中古故事系 · 每件老家具都有故事" },
+
+{ name:"艺术表达系", en:"ART EXPRESSION",
+  sub:"你喜欢的家，是你本人的展馆。<br>颜色、图案、混搭——规矩是拿来打破的。",
+  need:"自我表达感",
+  psych:"心理学家贝尔克的「延展自我」理论：环境是自我的延伸——你的家就是你的自画像，色彩是你的语言。比起「和谐地被喜欢」，你更需要在空间里<b>被记住</b>。",
+  big5:"高开放性（显著）",
+  traits:["创造力强，对常规审美有天然的叛逆心","情绪充沛、需要出口——布置家，就是你的表达出口","别人眼里的「乱」，其实是你稳定的心理签名"],
+  keys:["大胆","色彩","张力","有趣"],
+  pal:["#F5E9D0","#F2B441","#E8743B","#C94F4F","#5B8C5A"],
+  fit:"多巴胺 · 波西米亚 · 混搭艺术",
+  tip:"别怕别人说「花」——研究显示，真正个性化的空间，才最能降低压力。",
+  hash:"#艺术表达系 · 快乐要看得见" },
+
+{ name:"东方雅韵系", en:"ORIENTAL ELEGANCE",
+  sub:"你喜欢的家，保留东方的安静与余韵。<br>少，但每件都站得住。",
+  need:"内在秩序与安宁",
+  psych:"「留白」给你的，是认知的喘息与想象的余地——东方美学的「境」，本质是一种<b>低刺激、高意蕴</b>的环境，让心自然慢下来。热闹是你的礼貌，安静才是你的真实。",
+  big5:"高尽责性 + 情绪稳定",
+  traits:["内敛自持，对「度」的把握近乎本能","回避过度刺激，社交之后需要独处回血","审美经得起时间，喜欢的东西很少换"],
+  keys:["留白","意境","器物","余韵"],
+  pal:["#F5F2EA","#E3DCCB","#B7A98C","#7E7259","#3C3A33"],
+  fit:"新中式 · 东方禅意",
+  tip:"给自己留一个「一盏茶」的角落——正念研究说，仪式感是最省力的冥想。",
+  hash:"#东方雅韵系 · 安静但站得住" }
+];
+/* ═══════════ 数据区结束 ═══════════ */
+
+const deck = document.getElementById("deck");
+DATA.forEach((d,i)=>{
+  const p = document.createElement("div");
+  p.className = "page kai";
+  p.setAttribute("data-name", "r" + (i+1));
+  p.innerHTML = `
+    <div class="mast"><span>HOME AESTHETIC TEST</span></div>
+    <div class="t-you">—— 你的家居审美人格是 ——</div>
+    <div class="t-name">${d.name}</div>
+    <div class="t-en">${d.en}</div>
+    <div class="t-sub">${d.sub}</div>
+    <div class="cards">
+      <div class="card">
+        <span class="tag">深层心理需求 · ${d.need}</span>
+        <div class="ct">${d.psych}</div>
+      </div>
+      <div class="card">
+        <span class="tag green">性格侧写 · ${d.big5}</span>
+        <ul class="traits">${d.traits.map(t=>`<li>${t}</li>`).join("")}</ul>
+      </div>
+      <div class="card">
+        <span class="tag">关键词</span>
+        <div class="keys">${d.keys.map(k=>`<span>${k}</span>`).join("")}</div>
+      </div>
+      <div class="card">
+        <span class="tag">推荐色彩</span>
+        <div class="pal">${d.pal.map(c=>{
+          const L = [1,3,5].map(x=>parseInt(c.slice(x,x+2),16)).reduce((a,v)=>a+v,0);
+          const tc = L > 500 ? "rgba(60,55,45,.85)" : "rgba(255,255,255,.95)";
+          return `<i style="background:${c}"><span style="color:${tc}">${c}</span></i>`;
+        }).join("")}</div>
+        <div class="palcap">▲ 你的专属色板 · 截图带走</div>
+      </div>
+      <div class="card">
+        <span class="tag green">适合风格</span>
+        <div class="fit">${d.fit}</div>
+      </div>
+      <div class="card">
+        <span class="tag">心理学家的小建议</span>
+        <div class="ct">${d.tip}</div>
+      </div>
+    </div>
+    <div class="hash">${d.hash}</div>
+    <div class="disc">趣味测试 · 心理学内容为轻科普参考 · 色板仅供参考</div>`;
+  deck.appendChild(p);
+});
+</script>
+</body>
+</html>
