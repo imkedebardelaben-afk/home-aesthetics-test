@@ -3,3 +3,5 @@
 .DS_Store
 h5img/*
 !h5img/*.jpg
+
+密码表.txt

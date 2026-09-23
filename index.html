@@ -74,6 +74,24 @@ body{background:#E7E2D5;color:var(--ink);
 .arrow svg{width:16px;height:16px}
 .arrow.prev{left:8px}.arrow.next{right:8px}
 .rbtns{flex:0 0 auto;display:flex;gap:10px;padding:8px 30px calc(18px + env(safe-area-inset-bottom));background:rgba(255,255,255,.72);border-top:1px solid #E4DCC8}
+
+/* ── 密码锁屏 ── */
+.lock{position:fixed;inset:0;z-index:99;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;text-align:center}
+.lock.off{display:none}
+.lock .lk-kicker{font-size:11px;letter-spacing:.4em;color:var(--green);margin-bottom:16px}
+.lock .lk-title{font-size:26px;line-height:1.6;margin-bottom:8px}
+.lock .lk-sub{font-size:13px;color:var(--ink2);line-height:1.9;margin-bottom:30px}
+.lock input{width:230px;padding:13px 0;text-align:center;font-size:19px;letter-spacing:.35em;text-indent:.35em;
+  border:1.5px solid #D9D0BC;border-radius:8px;background:#fff;color:var(--ink);font-family:Georgia,serif;outline:none}
+.lock input:focus{border-color:var(--accent)}
+.lock button{margin-top:16px;width:230px;padding:13px 0;background:var(--ink);color:#F6F1E4;
+  border:none;border-radius:8px;font-size:15px;letter-spacing:.3em;text-indent:.3em;cursor:pointer;font-family:inherit}
+.lock button:active{transform:scale(.97)}
+.lock .lk-err{margin-top:14px;font-size:12.5px;color:#C0564F;letter-spacing:.1em;visibility:hidden}
+.lock .lk-err.show{visibility:visible;animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.lock .lk-foot{position:absolute;bottom:26px;left:0;right:0;font-size:10.5px;color:#B3AB9B;letter-spacing:.15em}
 .btn-ghost{flex:1;padding:12px 0;background:#fff;border:1.5px solid var(--ink);border-radius:6px;
   font-size:14px;letter-spacing:.2em;text-indent:.2em;color:var(--ink);cursor:pointer;font-family:inherit}
 .btn-solid{flex:1;padding:12px 0;background:var(--ink);border:1.5px solid var(--ink);border-radius:6px;
@@ -85,6 +103,17 @@ body{background:#E7E2D5;color:var(--ink);
 </style>
 </head>
 <body>
+<!-- 密码锁屏（一人一码：输入购买获得的专属密码） -->
+<div class="lock" id="lock">
+  <div class="lk-kicker serif">HOME AESTHETIC TEST</div>
+  <div class="lk-title serif">此内容已加密</div>
+  <div class="lk-sub">这是付费测试内容<br>请输入购买时获得的专属密码<br>（一人一码，请勿转借）</div>
+  <input id="lk-input" type="password" placeholder="专属密码" autocomplete="off">
+  <button id="lk-btn">解 锁</button>
+  <div class="lk-err" id="lk-err">密码不对，再检查一下～</div>
+  <div class="lk-foot">趣味测试 · 仅供娱乐</div>
+</div>
+
 <div class="stage">
 
   <!-- 启动页 -->
@@ -153,6 +182,65 @@ body{background:#E7E2D5;color:var(--ink);
 </div>
 
 <script>
+/* ═══════════ 密码区：一人一码（密码池的哈希值，由 生成密码.py 产出后粘贴到这里） ═══════════ */
+const PW_HASHES = [
+  "11ca2cf6",
+  "1d0126a9",
+  "247ed436",
+  "29e31209",
+  "2dddcb31",
+  "306457e0",
+  "328886e3",
+  "39ef3221",
+  "39f1761",
+  "3d682329",
+  "3d6fc9cd",
+  "3fd7f43",
+  "4815d5cd",
+  "4bd7c4a",
+  "4dd017ef",
+  "52897184",
+  "5535d74b",
+  "5e8e50dc",
+  "5f288607",
+  "5f3aa62c",
+  "67afec23",
+  "6a214271",
+  "6a4e1140",
+  "6eb2a3ae",
+  "79106bb0",
+  "7e8f661",
+  "826d048c",
+  "942d50a8",
+  "97ae7056",
+  "9a002c00",
+  "a3e0db69",
+  "a5911ab9",
+  "a8824b62",
+  "aa9cc967",
+  "ab0da7d6",
+  "b8dac5eb",
+  "c8365be2",
+  "c8d61030",
+  "d14d2f3",
+  "d447e1a1",
+  "d64a75ce",
+  "e1003b6c",
+  "e534764b",
+  "e8c6b84c",
+  "f04d1224",
+  "f1da0475",
+  "f27f9518",
+  "f2c76e97",
+  "f8c43b28",
+  "fce87fe6",
+];
+/* ╓ 密码管理说明：
+   ▸ 每行一个哈希 = 一个可用的客户密码（明文密码在 密码表.txt，只自己保存）
+   ▸ 发货：客户下单 → 从密码表取一个未用的密码发给TA
+   ▸ 作废某密码：删掉对应行 → 重新跑 渲染并推送（联系我一条命令）
+   ▸ 补充新密码：跑 生成密码.py 重新生成并粘贴 ╙ */
+
 /* ═══════════ 数据区：题目图 / 布局 / 热区起点 ═══════════ */
 /* layout: v=竖排四选(自上而下ABCD) / grid=田字格(左上A 右上B 左下C 右下D)
    top: 图片顶部标题区结束比例(热区从这开始) */
@@ -287,6 +375,35 @@ $("btn-save").addEventListener("click", ()=>{
   const b = $("btn-save"); b.textContent = "长按或截屏保存 ✓";
   setTimeout(()=>b.textContent = "截屏保存", 1800);
 });
+
+/* ── 密码锁：一人一码校验（明文密码在 密码表.txt，H5 内只存哈希） ── */
+function djb2(s){
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) >>> 0;
+  return h.toString(16);
+}
+(function(){
+  const lock = document.getElementById("lock");
+  if (!lock) return;
+  if (PW_HASHES.length === 0 || localStorage.getItem("h5unlocked") === "1"){
+    lock.classList.add("off"); return;      /* 未启用密码 / 本机已解锁 → 直接进 */
+  }
+  const input = document.getElementById("lk-input");
+  const err = document.getElementById("lk-err");
+  function tryUnlock(){
+    const v = input.value.trim();
+    if (v && PW_HASHES.indexOf(djb2(v)) >= 0){
+      localStorage.setItem("h5unlocked", "1");
+      lock.classList.add("off");
+    } else {
+      err.classList.remove("show"); void err.offsetWidth;
+      err.classList.add("show");
+      input.value = ""; input.focus();
+    }
+  }
+  document.getElementById("lk-btn").addEventListener("click", tryUnlock);
+  input.addEventListener("keydown", e=>{ if (e.key === "Enter") tryUnlock(); });
+})();
 </script>
 </body>
 </html>
